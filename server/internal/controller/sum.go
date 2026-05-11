@@ -19,7 +19,7 @@ func NewSumController() *SumController {
 }
 
 func (s *SumController) Handle(req ziface.IRequest) {
-	logger.Info("SumController Handle")
+	//logger.Info("SumController Handle")
 	data := req.GetMessage().GetData()
 
 	var sumMsg dto.SumMessage
