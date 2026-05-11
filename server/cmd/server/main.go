@@ -5,18 +5,30 @@ import (
 	"server/internal/router"
 	"server/pkg/db"
 	"server/pkg/logger"
+	"sync"
+	"time"
 
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 )
 
+var (
+	connCount int32
+	mutex     sync.Mutex
+)
+
 func OnConnStart(conn ziface.IConnection) {
-	//logger.Info("Client connectioned id %d addr: %s", conn.GetConnID(), conn.RemoteAddrString())
-	conn.SetProperty("userinfo", nil) // 可以放client 相关的数据
+	mutex.Lock()
+	connCount++
+	mutex.Unlock()
+	//logger.Info("Client connectioned id %d addr: %s, current connections: %d", conn.GetConnID(), conn.RemoteAddrString(), connCount)
 }
 
 func OnConnStop(conn ziface.IConnection) {
-	//logger.Info("Client disconnected id %d addr: %s", conn.GetConnID(), conn.RemoteAddrString())
+	mutex.Lock()
+	connCount--
+	mutex.Unlock()
+	//logger.Info("Client disconnected id %d addr: %s, current connections: %d", conn.GetConnID(), conn.RemoteAddrString(), connCount)
 }
 
 func initDB() error {
@@ -49,6 +61,17 @@ func main() {
 	s := znet.NewServer()
 	s.SetOnConnStart(OnConnStart)
 	s.SetOnConnStop(OnConnStop)
+
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			mutex.Lock()
+			count := connCount
+			mutex.Unlock()
+			logger.Info("Current connection count: %d", count)
+		}
+	}()
 
 	router.InitRouter(s)
 	logger.Info("Router initialized")

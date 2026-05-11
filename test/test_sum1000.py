@@ -59,10 +59,11 @@ async def run_client(client_id, host, port, repeat):
             stats.failed += repeat # 建连失败，该连接的任务全部计入失败
 
 async def main():
+    #server_host = '106.53.136.240'
     server_host = '127.0.0.1'
     server_port = 8888
-    total_conns = 100
-    repeat_per_conn = 100 
+    total_conns = 1000
+    repeat_per_conn = 1000
     
     print(f"🚀 启动压测: {total_conns} 并发连接, 每个连接请求 {repeat_per_conn} 次")
     start_time = time.time()
