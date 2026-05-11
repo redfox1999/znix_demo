@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"fmt"
 	"server/internal/dto"
 	"server/internal/service"
 	"server/pkg/db"
+	"server/pkg/log"
 	"server/pkg/msgpack"
 	"server/pkg/utils"
 
@@ -24,20 +24,22 @@ func NewPingController() *PingController {
 }
 
 func (p *PingController) Handle(request ziface.IRequest) {
+	msgID := request.GetMsgID()
 	data := request.GetData()
 
 	var msg dto.PingMessage
 
-	if err := msgpack.Unmarshal(data, &msg); err != nil {
-		fmt.Println(err)
+	if err := msgpack.Unmarshal(data, &msg); err != nil || !msg.Validate() {
+		log.WarnWithFields("Failed to unmarshal or validate ping message", "error", err)
+		request.GetConnection().Stop()
+		return
 	} else {
 		jsonStr := utils.ToJson(msg)
-		fmt.Println(jsonStr)
+		log.Print(jsonStr)
 	}
 
 	p.msgService.CreateMessage(string(data))
 
-	msgID := request.GetMsgID()
 	_ = request.GetConnection().SendBuffMsg(msgID, data)
 }
 
