@@ -1,0 +1,8 @@
+server/bin/
+*.db
+*.log
+server/data/
+server/logs/
+.env
+.venv/
+test/.venv/
