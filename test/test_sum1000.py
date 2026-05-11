@@ -12,7 +12,7 @@ class Stats:
 
 stats = Stats()
 # 并发限制：防止瞬间创建1000个TCP连接导致系统拒绝或丢包
-sem = asyncio.Semaphore(200) 
+sem = asyncio.Semaphore(1000) 
 
 async def send_msg(writer, msg_id, data):
     data_len = len(data)
@@ -59,10 +59,10 @@ async def run_client(client_id, host, port, repeat):
             stats.failed += repeat # 建连失败，该连接的任务全部计入失败
 
 async def main():
-    #server_host = '106.53.136.240'
-    server_host = '127.0.0.1'
+    server_host = '106.53.136.240'
+    #server_host = '127.0.0.1'
     server_port = 8888
-    total_conns = 1000
+    total_conns = 200
     repeat_per_conn = 1000
     
     print(f"🚀 启动压测: {total_conns} 并发连接, 每个连接请求 {repeat_per_conn} 次")

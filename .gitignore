@@ -6,3 +6,4 @@ server/logs/
 .env
 .venv/
 test/.venv/
+test/go_test/client
