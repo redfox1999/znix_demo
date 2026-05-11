@@ -12,6 +12,7 @@ import (
 
 func OnConnStart(conn ziface.IConnection) {
 	log.Info("Client connectioned id %d addr: %s", conn.GetConnID(), conn.RemoteAddrString())
+	conn.SetProperty("userinfo", nil) // 可以放client 相关的数据
 }
 
 func OnConnStop(conn ziface.IConnection) {
