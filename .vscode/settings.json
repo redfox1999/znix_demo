@@ -1,0 +1,11 @@
+{
+    "gopls": {
+        "ui.diagnostic.diagnosticsDelay": "10s"
+    },
+    "[go]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    }
+}

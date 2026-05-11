@@ -10,4 +10,5 @@ import (
 
 func InitRouter(s ziface.IServer) {
 	s.AddRouter(command.MsgIDPing, controller.NewPingController())
+	s.AddRouter(command.MsgIDSum, controller.NewSumController())
 }
