@@ -41,5 +41,5 @@ func (s *SumController) Handle(req ziface.IRequest) {
 		logger.Error("marshal sum response failed, err: %v", err)
 		return
 	}
-	_ = req.GetConnection().SendBuffMsg(command.MsgIDSum, data)
+	_ = req.GetConnection().SendMsg(command.MsgIDSum, data)
 }
