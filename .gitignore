@@ -8,3 +8,4 @@ server/logs/
 test/.venv/
 test/go_test/client
 test/go_test/client_test
+*.zip
