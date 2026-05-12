@@ -30,13 +30,13 @@ func (p *PingController) Handle(request ziface.IRequest) {
 	var msg dto.PingMessage
 
 	if err := msgpack.Unmarshal(data, &msg); err != nil || !msg.Validate() {
-		logger.WarnWithFields("Failed to unmarshal or validate ping message", "error", err)
+		logger.Warn("Failed to unmarshal or validate ping message", "error", err)
 		request.GetConnection().Stop()
 		return
-	} else {
-		jsonStr := utils.ToJson(msg)
-		logger.Print(jsonStr)
 	}
+
+	jsonStr := utils.ToJson(msg)
+	logger.Print(jsonStr)
 
 	p.msgService.CreateMessage(string(data))
 

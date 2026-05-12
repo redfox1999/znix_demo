@@ -19,14 +19,12 @@ func NewSumController() *SumController {
 }
 
 func (s *SumController) Handle(req ziface.IRequest) {
-	//logger.Info("SumController Handle")
 	data := req.GetMessage().GetData()
 
 	var sumMsg dto.SumMessage
 
 	if err := msgpack.Unmarshal(data, &sumMsg); err != nil || !sumMsg.Validate() {
-		logger.ErrorWithFields("Failed to unmarshal or validate sum message", "error", err)
-		logger.InfoWithFields("Error", "sumMsg", sumMsg)
+		logger.Error("Failed to unmarshal or validate sum message", "error", err, "sumMsg", sumMsg)
 		req.GetConnection().Stop()
 		return
 	}
@@ -38,7 +36,7 @@ func (s *SumController) Handle(req ziface.IRequest) {
 
 	data, err := msgpack.Marshal(sumRes)
 	if err != nil {
-		logger.Error("marshal sum response failed, err: %v", err)
+		logger.Error("Marshal sum response failed", "error", err)
 		return
 	}
 	_ = req.GetConnection().SendMsg(command.MsgIDSum, data)
