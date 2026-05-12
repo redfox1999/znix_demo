@@ -88,20 +88,23 @@ func runClient(clientID int, host string, port int, repeat int, sem chan struct{
 		} else {
 			stats.addSuccess(1)
 		}
+
+		time.Sleep(time.Millisecond)
 	}
 }
 
 func main() {
-	serverHost := "127.0.0.1"
+	//serverHost := "106.53.136.240"
+	serverHost := "localhost"
 	serverPort := 8888
-	totalConns := 100
+	totalConns := 10000
 	repeatPerConn := 1000
 
 	fmt.Printf("🚀 启动压测: %d 并发连接, 每个连接请求 %d 次\n", totalConns, repeatPerConn)
 	startTime := time.Now()
 
 	stats := &Stats{}
-	sem := make(chan struct{}, 1000)
+	sem := make(chan struct{}, 10000)
 	var wg sync.WaitGroup
 
 	wg.Add(totalConns)

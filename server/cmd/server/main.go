@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"server/internal/router"
 	"server/pkg/db"
 	"server/pkg/logger"
@@ -59,17 +60,18 @@ func main() {
 	defer db.Close()
 
 	s := znet.NewServer()
+
 	s.SetOnConnStart(OnConnStart)
 	s.SetOnConnStop(OnConnStop)
 
 	go func() {
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
 			mutex.Lock()
 			count := connCount
 			mutex.Unlock()
-			logger.Info("Current connection count: %d", count)
+			logger.Info("Clients: %d, goroutine count: %d", count, runtime.NumGoroutine())
 		}
 	}()
 

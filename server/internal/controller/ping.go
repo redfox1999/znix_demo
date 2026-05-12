@@ -40,7 +40,7 @@ func (p *PingController) Handle(request ziface.IRequest) {
 
 	p.msgService.CreateMessage(string(data))
 
-	_ = request.GetConnection().SendBuffMsg(msgID, data)
+	_ = request.GetConnection().SendMsg(msgID, data)
 }
 
 func (p *PingController) GetMessageService() *service.MessageService {
