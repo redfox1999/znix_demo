@@ -195,6 +195,8 @@ func runClient(clientID int, host string, port int, repeat int, sem chan struct{
 			stats.addSuccess(1)
 			stats.addRespTime(respTime)
 		}
+
+		time.Sleep(time.Millisecond)
 	}
 }
 

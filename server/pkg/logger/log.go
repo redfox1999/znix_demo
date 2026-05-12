@@ -111,55 +111,55 @@ func initLoggerWithWriter(level string, writer io.Writer) {
 }
 
 func Debug(msg string, fields ...interface{}) {
-	logger.Debug().Caller(1).Fields(toFields(fields)).Msg(msg)
+	logger.Debug().Caller(2).Fields(toFields(fields)).Msg(msg)
 }
 
 func Info(msg string, fields ...interface{}) {
-	logger.Info().Caller(1).Fields(toFields(fields)).Msg(msg)
+	logger.Info().Caller(2).Fields(toFields(fields)).Msg(msg)
 }
 
 func Warn(msg string, fields ...interface{}) {
-	logger.Warn().Caller(1).Fields(toFields(fields)).Msg(msg)
+	logger.Warn().Caller(2).Fields(toFields(fields)).Msg(msg)
 }
 
 func Error(msg string, fields ...interface{}) {
-	logger.Error().Caller(1).Fields(toFields(fields)).Msg(msg)
+	logger.Error().Caller(2).Fields(toFields(fields)).Msg(msg)
 }
 
 func Fatal(msg string, fields ...interface{}) {
-	logger.Fatal().Caller(1).Fields(toFields(fields)).Msg(msg)
+	logger.Fatal().Caller(2).Fields(toFields(fields)).Msg(msg)
 }
 
 func Panic(msg string, fields ...interface{}) {
-	logger.Panic().Caller(1).Fields(toFields(fields)).Msg(msg)
+	logger.Panic().Caller(2).Fields(toFields(fields)).Msg(msg)
 }
 
 func Debugf(format string, args ...interface{}) {
-	logger.Debug().Caller(1).Msgf(format, args...)
+	logger.Debug().Caller(2).Msgf(format, args...)
 }
 
 func Infof(format string, args ...interface{}) {
-	logger.Info().Caller(1).Msgf(format, args...)
+	logger.Info().Caller(2).Msgf(format, args...)
 }
 
 func Warnf(format string, args ...interface{}) {
-	logger.Warn().Caller(1).Msgf(format, args...)
+	logger.Warn().Caller(2).Msgf(format, args...)
 }
 
 func Errorf(format string, args ...interface{}) {
-	logger.Error().Caller(1).Msgf(format, args...)
+	logger.Error().Caller(2).Msgf(format, args...)
 }
 
 func Fatalln(msg string) {
-	logger.Fatal().Caller(1).Msg(msg)
+	logger.Fatal().Caller(2).Msg(msg)
 }
 
 func Print(msg string) {
-	logger.Info().Caller(1).Msg(msg)
+	logger.Info().Caller(2).Msg(msg)
 }
 
 func Printf(format string, args ...interface{}) {
-	logger.Info().Caller(1).Msgf(format, args...)
+	logger.Info().Caller(2).Msgf(format, args...)
 }
 
 func WithError(err error) *zerolog.Event {
