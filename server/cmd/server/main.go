@@ -22,14 +22,14 @@ func OnConnStart(conn ziface.IConnection) {
 	mutex.Lock()
 	connCount++
 	mutex.Unlock()
-	logger.Info("Client connected", "conn_id", conn.GetConnID(), "addr", conn.RemoteAddrString(), "total", connCount)
+	//logger.Info("Client connected", "conn_id", conn.GetConnID(), "addr", conn.RemoteAddrString(), "total", connCount)
 }
 
 func OnConnStop(conn ziface.IConnection) {
 	mutex.Lock()
 	connCount--
 	mutex.Unlock()
-	logger.Info("Client disconnected", "conn_id", conn.GetConnID(), "addr", conn.RemoteAddrString(), "total", connCount)
+	//logger.Info("Client disconnected", "conn_id", conn.GetConnID(), "addr", conn.RemoteAddrString(), "total", connCount)
 }
 
 func initDB() error {
