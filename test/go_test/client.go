@@ -51,7 +51,7 @@ func (s *Stats) addRespTime(ms float64) {
 	s.respTimes = append(s.respTimes, ms)
 	s.respMu.Unlock()
 
-	bucket := int(ms / 100)
+	bucket := int(ms / 50)
 	if bucket >= histBucketCount {
 		bucket = histBucketCount - 1
 	}
@@ -117,8 +117,8 @@ func (s *Stats) printHistogram() {
 	}
 
 	for i := 0; i < histBucketCount; i++ {
-		low := i * 100
-		high := (i + 1) * 100
+		low := i * 50
+		high := (i + 1) * 50
 		count := s.histBuckets[i]
 		percentage := float64(count) / float64(total) * 100
 
