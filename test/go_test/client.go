@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"math/rand"
 	"net"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -13,21 +15,122 @@ import (
 )
 
 type Stats struct {
-	success int64
-	failed  int64
-	mu      sync.Mutex
+	success     int64
+	failed      int64
+	respTimes   []float64
+	respMu      sync.Mutex
+	histBuckets []int64
+	histMu      sync.RWMutex
+}
+
+const (
+	histBucketCount = 20
+)
+
+func NewStats() *Stats {
+	return &Stats{
+		respTimes:   make([]float64, 0, 100000),
+		histBuckets: make([]int64, histBucketCount),
+	}
 }
 
 func (s *Stats) addSuccess(n int64) {
-	s.mu.Lock()
+	s.respMu.Lock()
 	s.success += n
-	s.mu.Unlock()
+	s.respMu.Unlock()
 }
 
 func (s *Stats) addFailed(n int64) {
-	s.mu.Lock()
+	s.respMu.Lock()
 	s.failed += n
-	s.mu.Unlock()
+	s.respMu.Unlock()
+}
+
+func (s *Stats) addRespTime(ms float64) {
+	s.respMu.Lock()
+	s.respTimes = append(s.respTimes, ms)
+	s.respMu.Unlock()
+
+	bucket := int(ms / 5)
+	if bucket >= histBucketCount {
+		bucket = histBucketCount - 1
+	}
+	s.histMu.Lock()
+	s.histBuckets[bucket]++
+	s.histMu.Unlock()
+}
+
+func (s *Stats) getPercentile(p float64) float64 {
+	s.respMu.Lock()
+	defer s.respMu.Unlock()
+
+	if len(s.respTimes) == 0 {
+		return 0
+	}
+
+	index := int(math.Ceil(float64(len(s.respTimes))*p)) - 1
+	if index < 0 {
+		index = 0
+	}
+	if index >= len(s.respTimes) {
+		index = len(s.respTimes) - 1
+	}
+
+	sorted := make([]float64, len(s.respTimes))
+	copy(sorted, s.respTimes)
+	sort.Float64s(sorted)
+	return sorted[index]
+}
+
+func (s *Stats) getAvg() float64 {
+	s.respMu.Lock()
+	defer s.respMu.Unlock()
+
+	if len(s.respTimes) == 0 {
+		return 0
+	}
+
+	var sum float64
+	for _, t := range s.respTimes {
+		sum += t
+	}
+	return sum / float64(len(s.respTimes))
+}
+
+func (s *Stats) printHistogram() {
+	s.histMu.RLock()
+	defer s.histMu.RUnlock()
+
+	fmt.Println("\n响应时间分布 (ms):")
+	fmt.Println(strings.Repeat("-", 50))
+
+	var total int64
+	for _, v := range s.histBuckets {
+		total += v
+	}
+
+	maxBucket := int64(0)
+	for _, v := range s.histBuckets {
+		if v > maxBucket {
+			maxBucket = v
+		}
+	}
+
+	for i := 0; i < histBucketCount; i++ {
+		low := i * 5
+		high := (i + 1) * 5
+		count := s.histBuckets[i]
+		percentage := float64(count) / float64(total) * 100
+
+		barLen := 0
+		if maxBucket > 0 {
+			barLen = int(float64(count) / float64(maxBucket) * 40)
+		}
+		bar := strings.Repeat("█", barLen)
+
+		fmt.Printf("%3d-%3dms: %8d (%5.2f%%) %s\n", low, high, count, percentage, bar)
+	}
+	fmt.Println(strings.Repeat("-", 50))
 }
 
 func sendMsg(conn net.Conn, msgID uint32, data []byte) error {
@@ -78,6 +181,8 @@ func runClient(clientID int, host string, port int, repeat int, sem chan struct{
 			continue
 		}
 
+		sendTime := time.Now()
+
 		if err := sendMsg(conn, 1001, data); err != nil {
 			stats.addFailed(1)
 			continue
@@ -86,24 +191,23 @@ func runClient(clientID int, host string, port int, repeat int, sem chan struct{
 		if _, _, err := recvMsg(conn); err != nil {
 			stats.addFailed(1)
 		} else {
+			respTime := time.Since(sendTime).Seconds() * 1000
 			stats.addSuccess(1)
+			stats.addRespTime(respTime)
 		}
-
-		time.Sleep(time.Millisecond)
 	}
 }
 
 func main() {
-	//serverHost := "106.53.136.240"
 	serverHost := "localhost"
 	serverPort := 8888
-	totalConns := 10000
+	totalConns := 100
 	repeatPerConn := 1000
 
 	fmt.Printf("🚀 启动压测: %d 并发连接, 每个连接请求 %d 次\n", totalConns, repeatPerConn)
 	startTime := time.Now()
 
-	stats := &Stats{}
+	stats := NewStats()
 	sem := make(chan struct{}, 10000)
 	var wg sync.WaitGroup
 
@@ -117,11 +221,22 @@ func main() {
 
 	qps := float64(stats.success) / duration.Seconds()
 
-	fmt.Println("\n" + "=" + strings.Repeat("=", 39))
+	fmt.Println("\n" + strings.Repeat("=", 50))
 	fmt.Printf("🏁 压测报告\n")
 	fmt.Printf("总耗时: %.2f 秒\n", duration.Seconds())
 	fmt.Printf("成功次数: %d\n", stats.success)
 	fmt.Printf("失败次数: %d\n", stats.failed)
 	fmt.Printf("有效 QPS: %.2f\n", qps)
-	fmt.Println("=" + strings.Repeat("=", 39))
+	fmt.Println(strings.Repeat("-", 50))
+	fmt.Printf("响应时间 (ms):\n")
+	fmt.Printf("  平均: %.2f\n", stats.getAvg())
+	fmt.Printf("  最小: %.2f\n", stats.getPercentile(0))
+	fmt.Printf("  P50:  %.2f\n", stats.getPercentile(0.50))
+	fmt.Printf("  P90:  %.2f\n", stats.getPercentile(0.90))
+	fmt.Printf("  P95:  %.2f\n", stats.getPercentile(0.95))
+	fmt.Printf("  P99:  %.2f\n", stats.getPercentile(0.99))
+	fmt.Printf("  最大: %.2f\n", stats.getPercentile(1.0))
+	fmt.Println(strings.Repeat("=", 50))
+
+	stats.printHistogram()
 }

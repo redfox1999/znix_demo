@@ -7,3 +7,4 @@ server/logs/
 .venv/
 test/.venv/
 test/go_test/client
+test/go_test/client_test
