@@ -201,7 +201,7 @@ func runClient(clientID int, host string, port int, repeat int, sem chan struct{
 func main() {
 	serverHost := "localhost"
 	serverPort := 8888
-	totalConns := 100
+	totalConns := 10000
 	repeatPerConn := 1000
 
 	fmt.Printf("🚀 启动压测: %d 并发连接, 每个连接请求 %d 次\n", totalConns, repeatPerConn)
